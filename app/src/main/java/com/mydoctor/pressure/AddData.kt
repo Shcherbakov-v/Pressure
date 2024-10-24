@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -65,14 +66,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.mydoctor.pressure.data.Pressure
 import com.mydoctor.pressure.ui.theme.PressureTheme
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Calendar
 
+@AndroidEntryPoint
 class AddData : ComponentActivity() {
+    private val addDataViewModel: AddDataViewModel by viewModels()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -80,7 +86,23 @@ class AddData : ComponentActivity() {
             PressureTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     AddDataPage(
-                        modifier = Modifier.padding(innerPadding)
+                        modifier = Modifier.padding(innerPadding),
+                                onSaveClick = {
+                            // Note: If the user rotates the screen very fast, the operation may get cancelled
+                            // and the item may not be saved in the Database. This is because when config
+                            // change occurs, the Activity will be recreated and the rememberCoroutineScope will
+                            // be cancelled - since the scope is bound to composition.
+                           // coroutineScope.launch {
+                                    addDataViewModel.saveItem(Pressure(
+                                        systolic = 120,
+                                        diastolic = 90,
+                                        pulse = 70,
+                                        date = 8756768435464L,
+                                        note = "Отличное самочуствие"
+                                    ))
+                               // navigateBack()
+                            //}
+                        },
                     )
                 }
             }
@@ -90,7 +112,10 @@ class AddData : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddDataPage(modifier: Modifier = Modifier) {
+fun AddDataPage(
+    modifier: Modifier = Modifier,
+    onSaveClick: (() -> Unit)?,
+) {
 
     //var showDialog by remember { mutableStateOf(false) }
 
@@ -105,7 +130,7 @@ fun AddDataPage(modifier: Modifier = Modifier) {
             Note()
         }
         Button(
-            onClick = { },
+            onClick = { onSaveClick?.let { it() } },
             modifier = Modifier
                 .fillMaxWidth()
                 .align(alignment = Alignment.BottomCenter)
@@ -125,7 +150,7 @@ fun AddDataPage(modifier: Modifier = Modifier) {
 @Composable
 fun GreetingPreview2() {
     PressureTheme {
-        AddDataPage()
+        AddDataPage(onSaveClick = null)
     }
 }
 
