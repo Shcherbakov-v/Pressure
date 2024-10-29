@@ -1,4 +1,32 @@
 <resources>
     <string name="app_name">Pressure</string>
     <string name="title_activity_add_data">AddData</string>
+    <string name="name_pressure">Давление</string>
+    <string name="notes">Заметки</string>
+    <string name="description_note_text">Опиши свое состояние</string>
+    <string name="day">День</string>
+    <string name="week">Неделя</string>
+    <string name="month">Месяц</string>
+    <string name="description_target_text">Поставьте перед собой цель</string>
+    <string name="measurement_log">Журнал измерений</string>
+    <string name="targets">Цели</string>
+    <string name="save">Сохранить</string>
+    <string name="blood_pressure">Кровяное давление</string>
+    <string name="systolic">Систолическое</string>
+    <string name="diastolic">Диастолическое</string>
+    <string name="pulse">Пульс</string>
+    <string name="add_data">Добавить данные</string>
+    <string name="time_picker_type_toggle_description">Time picker type toggle</string>
+    <string name="select_time">Select Time</string>
+    <string name="cancel">Cancel</string>
+    <string name="ok">OK</string>
+    <string name="measurement_time">Время измерений</string>
+    <string name="date_of_measurements">Дата измерений</string>
+    <string name="note">Заметка</string>
+    <string name="describe_how_you_feel">Опиши свое самочуствие</string>
+    <string name="pressure_tag">PressureTag</string>
+    <string name="my_doctor">Мой доктор</string>
+    <string name="default_systolic_pressure">120</string>
+    <string name="default_diastolic_pressure">90</string>
+    <string name="default_pulse">70</string>
 </resources>

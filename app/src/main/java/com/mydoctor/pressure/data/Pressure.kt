@@ -8,7 +8,7 @@ data class Pressure(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
     val systolic: Int,
-    val diastolic : Int,
+    val diastolic: Int,
     val pulse: Int,
     val date: Long,
     val note: String,

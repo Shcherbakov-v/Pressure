@@ -5,20 +5,14 @@ import com.mydoctor.pressure.data.PressuresRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
-import dagger.hilt.components.SingletonComponent
-import javax.inject.Qualifier
-import javax.inject.Singleton
+import dagger.hilt.android.components.ViewModelComponent
+import dagger.hilt.android.scopes.ViewModelScoped
 
-@Qualifier
-annotation class DatabasePressures
-
-@InstallIn(SingletonComponent::class)
 @Module
+@InstallIn(ViewModelComponent::class)
 abstract class PressuresDatabaseModule {
 
-    @DatabasePressures
-    @Singleton
+    @ViewModelScoped
     @Binds
-    abstract fun bindDatabaseLogger(impl: OfflinePressuresRepository): PressuresRepository
+    internal abstract fun bindDatabasePressures(impl: OfflinePressuresRepository): PressuresRepository
 }
-
