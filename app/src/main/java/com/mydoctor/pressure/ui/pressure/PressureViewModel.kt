@@ -24,7 +24,7 @@ class PressureViewModel @Inject constructor(private val pressuresRepository: Pre
             )
 
     companion object {
-        private const val TIMEOUT_MILLIS = 5_000L
+        private const val TIMEOUT_MILLIS = 0L//5_000L
     }
 }
 

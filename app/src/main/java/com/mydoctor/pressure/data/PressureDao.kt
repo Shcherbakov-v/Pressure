@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface PressureDao {
-    @Query("SELECT * FROM pressures")
+    @Query("SELECT * FROM pressures ORDER BY date")
     fun getAllPressures(): Flow<List<Pressure>>
 
     @Query("SELECT * from pressures WHERE id = :id")

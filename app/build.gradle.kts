@@ -83,7 +83,10 @@ dependencies {
     ksp(libs.hilt.android.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
 
+    //ksp
     implementation(libs.symbol.processing.api)
+
+    implementation(libs.mpandroidchart)
 
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 }

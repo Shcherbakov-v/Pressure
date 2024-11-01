@@ -34,11 +34,19 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.github.mikephil.charting.data.Entry
 import com.mydoctor.pressure.R
+import com.mydoctor.pressure.data.Pressure
 import com.mydoctor.pressure.ui.Header
-import com.mydoctor.pressure.ui.utilities.SegmentedControl
 import com.mydoctor.pressure.ui.navigation.NavigationDestination
 import com.mydoctor.pressure.ui.theme.PressureTheme
+import com.mydoctor.pressure.ui.utilities.Chart
+import com.mydoctor.pressure.ui.utilities.SegmentedControl
+import com.mydoctor.pressure.utilities.unzip
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 object PressureDestination : NavigationDestination {
     override val route = "home"
@@ -57,12 +65,16 @@ fun PressureScreen(
 
     val pressureUiState by pressureViewModel.pressureUiState.collectAsState()
     Log.d(stringResource(R.string.pressure_tag), pressureUiState.pressureList.toString())
-    PressureScreenUI(navigateToAddPressure)
+    PressureScreenUI(
+        navigateToAddPressure = navigateToAddPressure,
+        pressureList = pressureUiState.pressureList,
+    )
 }
 
 @Composable
 fun PressureScreenUI(
     navigateToAddPressure: () -> Unit,
+    pressureList: List<Pressure>,
 ) {
     Column {
         Header()
@@ -89,6 +101,7 @@ fun PressureScreenUI(
 
             }
         )
+        ChartBlock(pressureList)
         Notes(
             {},
             stringResource(R.string.description_note_text)
@@ -135,6 +148,42 @@ fun PressureBlock(
                 null,
             )
         }
+    }
+}
+
+@Composable
+fun ChartBlock(
+    pressureList: List<Pressure>,
+) {
+    val formatterDate = DateTimeFormatter.ofPattern("dd.MM")
+    val (
+        listEntrySystolic,
+        listEntryDiastolic,
+        dates
+    ) = pressureList.mapIndexed { index, pressure ->
+        val date = LocalDateTime.ofInstant(
+            Instant.ofEpochMilli(pressure.date),
+            ZoneId.systemDefault()
+        )
+        Triple(
+            Entry(index.toFloat(), pressure.systolic.toFloat(), pressure),
+            Entry(index.toFloat(), pressure.diastolic.toFloat(), pressure),
+            formatterDate.format(date)
+        )
+    }.unzip()
+    Card(
+        modifier = Modifier
+        .fillMaxWidth()
+        .padding(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White,
+        ),
+    ) {
+        Chart(
+            listEntry1 = listEntrySystolic,
+            listEntry2 = listEntryDiastolic,
+            chartAxisValues = dates,
+        )
     }
 }
 
@@ -325,6 +374,50 @@ fun MeasurementLog(onClick: () -> Unit) {
 @Composable
 fun PressureScreenPreview() {
     PressureTheme {
-        PressureScreenUI {}
+        PressureScreenUI(
+            navigateToAddPressure = {},
+            pressureList = listOf(
+                Pressure(
+                    id = 0,
+                    systolic = 121,
+                    diastolic = 91,
+                    pulse = 71,
+                    date = 1729555200000,
+                    note = "",
+                ),
+                Pressure(
+                    id = 0,
+                    systolic = 122,
+                    diastolic = 92,
+                    pulse = 71,
+                    date = 1729728000000,
+                    note = "",
+                ),
+                Pressure(
+                    id = 0,
+                    systolic = 123,
+                    diastolic = 93,
+                    pulse = 71,
+                    date = 1729814400000,
+                    note = "",
+                ),
+                Pressure(
+                    id = 0,
+                    systolic = 124,
+                    diastolic = 94,
+                    pulse = 71,
+                    date = 1729900800000,
+                    note = "",
+                ),
+                Pressure(
+                    id = 0,
+                    systolic = 125,
+                    diastolic = 95,
+                    pulse = 71,
+                    date = 1729987200000,
+                    note = "",
+                ),
+            ),
+        )
     }
 }
