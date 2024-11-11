@@ -9,7 +9,7 @@ interface PressuresRepository {
     /**
      * Retrieve all the pressures from the the given data source.
      */
-    fun getAllPressuresStream(): Flow<List<Pressure>>
+    fun getPressuresStream(startDate: Long, endDate: Long): Flow<List<Pressure>>
 
     /**
      * Retrieve an pressure from the given data source that matches with the [id].

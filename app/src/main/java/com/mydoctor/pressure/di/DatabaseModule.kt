@@ -26,7 +26,7 @@ object DatabaseModule {
     }
 
     @Provides
-    fun provideLogDao(database: PressureRoomDatabase): PressureDao {
+    fun providePressureDao(database: PressureRoomDatabase): PressureDao {
         return database.pressureDao()
     }
 }

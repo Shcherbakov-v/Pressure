@@ -1,11 +1,15 @@
 package com.mydoctor.pressure.ui.utilities
 
+import android.graphics.Color
 import android.util.Log
+import android.view.MotionEvent
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -13,21 +17,25 @@ import androidx.compose.ui.viewinterop.AndroidView
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.components.AxisBase
 import com.github.mikephil.charting.components.Legend
+import com.github.mikephil.charting.components.LimitLine
 import com.github.mikephil.charting.components.XAxis
+import com.github.mikephil.charting.components.YAxis
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
-import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import com.github.mikephil.charting.formatter.ValueFormatter
+import com.github.mikephil.charting.listener.ChartTouchListener
+import com.github.mikephil.charting.listener.OnChartGestureListener
 import com.mydoctor.pressure.R
 import com.mydoctor.pressure.ui.theme.PressureTheme
-
+import com.mydoctor.pressure.utilities.PeriodOfTime
 
 @Composable
 fun LineChartCard(
     modifier: Modifier = Modifier,
     lineData: LineData,
     chartAxisValues: List<String>,
+    maxRangeValue: Float,
 ) {
     /*    Card(
             modifier = modifier
@@ -38,10 +46,16 @@ fun LineChartCard(
     LineChartComponent(
         modifier = Modifier
             //.fillMaxSize()
-            .padding(16.dp)
-            .aspectRatio(2f),
+            //.padding(16.dp)
+            .padding(
+                bottom = 16.dp
+            )
+            .aspectRatio(1.45f),
+        //.width(400.dp)
+        //.height(400.dp)
         lineData = lineData,
         chartAxisValues = chartAxisValues,
+        maxRangeValue = maxRangeValue
     )
     //}
 }
@@ -51,19 +65,26 @@ fun LineChartComponent(
     modifier: Modifier = Modifier,
     lineData: LineData,
     chartAxisValues: List<String>,
+    maxRangeValue: Float,
 ) {
     // set up data-> (x,y) -> Entry -> List<Entry> -> LineDataSet -> LineData -> LineChart(LineData)
     AndroidView(
         modifier = modifier,
         factory = { context ->
-            LineChart(context).setupLineChart(chartAxisValues).apply {
-                setBackgroundColor(android.graphics.Color.WHITE)
+            LineChart(context).setupLineChart(
+                chartAxisValues = chartAxisValues,
+                maxRangeValue = maxRangeValue
+            ).apply {
+                setBackgroundColor(Color.WHITE)
                 data = lineData
             }
         },
     ) {
         it.data = lineData
-        it.setupLineChart(chartAxisValues)
+        it.setupLineChart(
+            chartAxisValues = chartAxisValues,
+            maxRangeValue = maxRangeValue
+        )
         it.notifyDataSetChanged()
         it.invalidate()
         Log.d("PressureTag", "тут")
@@ -72,7 +93,7 @@ fun LineChartComponent(
 
 // List<Float> -> List<Entry> -> LineDataSet
 fun List<Float>.createDataSetWithColor(
-    datasetColor: Int = android.graphics.Color.GREEN, label: String = "No Label"
+    datasetColor: Int = Color.GREEN, label: String = "No Label"
 ): LineDataSet {
     // List<Float> -> List<Entry>
     val entries = this.mapIndexed { index, value ->
@@ -87,138 +108,157 @@ fun List<Float>.createDataSetWithColor(
     }
 }
 
-fun LineChart.setupLineChart(chartAxisValues: List<String>): LineChart = this.apply {
-    setTouchEnabled(true)
-    isDragEnabled = true
+fun LineChart.setupLineChart(chartAxisValues: List<String>, maxRangeValue: Float): LineChart =
+    this.apply {
 
-    //this.setDragEnabled(true)
-    setScaleEnabled(true)
-    setPinchZoom(true)
-    description.isEnabled = false
+        //if (!(axisRight != null && axisRight.axisMaximum > 0)) return@apply
 
-    legend.form = Legend.LegendForm.CIRCLE
-    legend.verticalAlignment = Legend.LegendVerticalAlignment.TOP
-    //legend.setDrawInside(false)
-    //legend.
+        setTouchEnabled(false)
+        isDragEnabled = false
+        setScaleEnabled(false)
 
+        //this.setDragEnabled(true)
+        //setPinchZoom(true)
+        description.isEnabled = false
 
-    //xAxis.setAxisMinimum(0f);
-    //xAxis.spaceMax = 0.4f
-    //xAxis.spaceMin = 0.4f;
-    // set up x-axis
-    xAxis.apply {
-        position = XAxis.XAxisPosition.BOTTOM
-        // axisMinimum = -10f
-        // axisMaximum = 10f
-    }
+        legend.apply {
+            form = Legend.LegendForm.CIRCLE
+            verticalAlignment = Legend.LegendVerticalAlignment.TOP
+        }
 
+        val space = 0.5f
 
-    val chartAxisValuesM = chartAxisValues.toMutableList().apply {
-        if (chartAxisValues.isNotEmpty()) {
-        add("")
-        add(chartAxisValues.size - 1, "")
-            }
-    }
-    xAxis.setLabelCount(chartAxisValues.size, true)
-    //xAxis.valueFormatter = LineChartXAxisValueFormatter(chartAxisValues.toTypedArray())
-
-    xAxis.valueFormatter = object : ValueFormatter() {
-        override fun getAxisLabel(value: Float, axis: AxisBase): String {
-            return if (chartAxisValues.isNotEmpty()) chartAxisValues[value.toInt()] else ""
+        val createLimitLine: (limit: Float, color: Int) -> LimitLine = { limit, color ->
+            LimitLine(limit).apply {
+                lineColor = color
+                setLineWidth(0.2f)
+                enableDashedLine(14f, 14f, 0f)
             }
         }
 
+        // set up x-axis
+        xAxis.apply {
+            setDrawGridLines(false)
+            //maxVisibleCount = maxRangeValue.toInt()
+            //setMaxVisibleValueCount(maxRangeValue.toInt())
+            //setVisibleXRange(0f, maxRangeValue)
+            //setAxisMaximum(maxRangeValue)
+            axisMinimum = 0f
+            axisMaximum = maxRangeValue
+            //setVisibleXRangeMinimum(0f)
+            //setVisibleXRangeMaximum(maxRangeValue)
+            //mAxisMaximum = 0f
+            //mAxisMaximum = maxRangeValue
+            textColor = Color.GRAY
+            axisLineColor = Color.BLACK
+            position = XAxis.XAxisPosition.BOTTOM
+            spaceMax = space
+            spaceMin = space
+            labelCount = if (chartAxisValues.size < 7) chartAxisValues.size else 7
 
-/*    xAxis.valueFormatter = object : ValueFormatter() {
-        override fun getAxisLabel(value: Float, axis: AxisBase): String {
-            return when (value.toInt()) {
-                0 -> ""
-                chartAxisValuesM.size - 1 -> ""
-                else -> chartAxisValuesM[value.toInt()]
+            val llStart = createLimitLine(-space, Color.GRAY)
+            addLimitLine(llStart)
+
+            valueFormatter = object : ValueFormatter() {
+                override fun getAxisLabel(value: Float, axis: AxisBase): String {
+                    val index = value.toInt()
+                    return if (chartAxisValues.isNotEmpty() && index < chartAxisValues.size) {
+                        chartAxisValues[index]
+                    } else ""
+                }
             }
         }
-    }*/
 
-    //xAxis.setXOffset(155f)
-    //xAxis.setAxisLineWidth(1f);
+        //axisLeft.setAxisMaximum(maxRangeValue);
+        //axisRight.setAxisMaximum(maxRangeValue);
 
-    //setVisibleXRangeMaximum(chartAxisValues.size.toFloat());
-    //setVisibleXRangeMinimum(chartAxisValues.size.toFloat());
+        axisLeft.axisMinimum = 0f
+        axisRight.axisMinimum = 0f
 
-    //setViewPortOffsets(0f, 0f, 0f, 0f);
+        if (axisRight.axisMaximum <= 200f) {
+            axisRight.labelCount = 4
+            axisLeft.axisMaximum = 200f
+            axisRight.axisMaximum = 200f
+        } else {
+            axisRight.labelCount = 5
+        }
 
-    //xAxis.setCenterAxisLabels(true)
+        axisLeft.isEnabled = false
 
-    // set up y-axis
-    axisRight.apply {
-        // axisMinimum = -5f
-        // axisMaximum = 5f
-        // setDrawGridLines(false)
-        xAxis.setDrawGridLines(false);
-        enableGridDashedLine(14f, 14f, 0f)
-        //gridColor = android.graphics.Color.GREEN
+        // set up y-axis
+        axisRight.apply {
+            setDrawGridLines(false)
+            enableGridDashedLine(14f, 14f, 0f)
+            axisLineColor = Color.BLACK
 
+            //val axisMaximumValue = axisRight.axisMaximum
+
+            val llDangerouslyHigh = createLimitLine(150f, Color.RED)
+            val llDangerouslyLow = createLimitLine(50f, Color.BLUE)
+            val llMiddle = createLimitLine(100f, Color.GRAY)
+            val llTop = createLimitLine(axisMaximum, Color.GRAY)
+
+            addLimitLine(llDangerouslyLow)
+            addLimitLine(llMiddle)
+            addLimitLine(llDangerouslyHigh)
+            addLimitLine(llTop)
+        }
+
+        rendererRightYAxis = ColoredLabelYAxisRenderer(
+            viewPortHandler = viewPortHandler,
+            yAxis = axisRight,
+            getTransformer(YAxis.AxisDependency.RIGHT)
+        )
     }
 
-    axisLeft.isEnabled = false
-}
+sealed class SwipeDirection
 
-class LineChartXAxisValueFormatter(chartAxisValues: Array<String>) :
-    IndexAxisValueFormatter(chartAxisValues) {
-    override fun getFormattedValue(value: Float): String {
-
-        //Timber.i("index = %s", value);
-        return super.getFormattedValue(value);
-    }
-}
-
-//class LineChartXAxisValueFormatter : IndexAxisValueFormatter() {
-//    override fun getFormattedValue(value: Float): String {
-//        // Convert float value to date string
-//        // Convert from seconds back to milliseconds to format time  to show to the user
-//
-//        val emissionsMilliSince1970Time = (value.toLong()) //* 1000
-//
-//        // Show time in local version
-//
-//
-//                val timeMilliseconds: Date = Date(emissionsMilliSince1970Time)
-//                val dateTimeFormat: DateFormat =
-//                    DateFormat.getDateInstance(DateFormat.MEDIUM, Locale.getDefault())
-//
-//        val formatterDate = DateTimeFormatter.ofPattern("dd.MM")
-//        val date = LocalDateTime.ofInstant(
-//            Instant.ofEpochMilli(emissionsMilliSince1970Time),
-//            ZoneId.systemDefault()
-//        )
-//
-//        return formatterDate.format(date)
-//    }
-//}
+data object Back : SwipeDirection()
+data object Forward : SwipeDirection()
 
 @Composable
 fun Chart(
     listEntry1: List<Entry>,
     listEntry2: List<Entry>,
     chartAxisValues: List<String>,
+    maxRangeValue: Float,
+    onSwipe: (SwipeDirection) -> Unit = {},
 ) {
     val lineDataSet = createLineDataSet(
         listEntry1,
-        android.graphics.Color.parseColor("#66FF725E"),
-        android.graphics.Color.parseColor("#FF725E"),
+        Color.parseColor("#FF725E"),
+        Color.parseColor("#FF725E"),
         stringResource(R.string.systolic),
     )
     val lineDataSet2 = createLineDataSet(
         listEntry2,
-        android.graphics.Color.parseColor("#66FFB342"),
-        android.graphics.Color.parseColor("#FFB342"),
+        Color.parseColor("#66FFB342"),
+        Color.parseColor("#FFB342"),
         stringResource(R.string.diastolic),
     )
     val lineData = LineData(lineDataSet, lineDataSet2)
 
     LineChartCard(
+        modifier = Modifier
+            .pointerInput(Unit) {
+                detectDragGestures { change, dragAmount ->
+                    change.consume()
+                    val x = dragAmount.x
+                    when {
+                        x > 0 -> {
+                            /* right */
+                            onSwipe
+                        }
+
+                        x < 0 -> {
+                            /* left */
+                        }
+                    }
+                }
+            },
         lineData = lineData,
         chartAxisValues = chartAxisValues,
+        maxRangeValue = maxRangeValue,
     )
 }
 
@@ -248,21 +288,23 @@ fun createLineDataSet(
 fun PressureScreenPreview() {
     PressureTheme {
         Column {
-            val countDots = 4
+            val countDots = 17
+            val startX = 5
             Chart(
-                listEntry1 = (0..<countDots).map {
+                listEntry1 = (startX..<countDots).map {
                     Entry(
                         it.toFloat(),
-                        (10..20).random().toFloat(),
+                        (100..180).random().toFloat(),
                     )
                 },
-                listEntry2 = (0..<countDots).map {
+                listEntry2 = (startX..<countDots).map {
                     Entry(
                         it.toFloat(),
-                        (0..10).random().toFloat()
+                        (80..110).random().toFloat()
                     )
                 },
-                chartAxisValues = (0..<countDots).map { "1$it.10" }
+                chartAxisValues = (0..<countDots).map { "${it + 1}.10" },
+                maxRangeValue = 25f//countDots.toFloat()
             )
         }
     }

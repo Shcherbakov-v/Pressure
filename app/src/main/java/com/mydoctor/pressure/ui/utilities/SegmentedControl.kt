@@ -39,7 +39,7 @@ fun SegmentedControl(
     onItemSelection: (selectedItemIndex: Int) -> Unit
 ) {
     val selectedIndex = remember { mutableIntStateOf(defaultSelectedItemIndex) }
-    val itemIndex = remember { mutableIntStateOf(defaultSelectedItemIndex) }
+    //val itemIndex = remember { mutableIntStateOf(defaultSelectedItemIndex) }
 
     Card(
         modifier = Modifier
@@ -62,7 +62,7 @@ fun SegmentedControl(
             horizontalArrangement = Arrangement.Center
         ) {
             items.forEachIndexed { index, item ->
-                itemIndex.intValue = index
+                //itemIndex.intValue = index
                 Card(
                     modifier = modifier
                         .weight(1f)
