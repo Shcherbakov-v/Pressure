@@ -10,6 +10,9 @@ import androidx.compose.ui.Modifier
 import com.mydoctor.pressure.ui.theme.PressureTheme
 import dagger.hilt.android.AndroidEntryPoint
 
+/**
+ * Main activity of the application.
+ */
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

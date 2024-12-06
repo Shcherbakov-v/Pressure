@@ -11,14 +11,27 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.mydoctor.pressure.R
 import com.mydoctor.pressure.ui.theme.PressureTheme
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.ZonedDateTime
 
+/**
+ * A dialog for displaying a [DatePicker]. Date pickers let people select a date.
+ *
+ * @param initialSelectedDateMillis - the date that will be displayed first on the dialog
+ * @param onDismiss - function that is run when a dialog is canceled
+ * @param onDateSelected - function that is run when the selection is confirmed. And transmits the selected date
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdvancedDatePickerDialog(
+    initialSelectedDateMillis: Long,
     onDismiss: () -> Unit,
     onDateSelected: (Long) -> Unit,
 ) {
-    val datePickerState = rememberDatePickerState()
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = initialSelectedDateMillis
+    )
 
     DatePickerDialog(
         onDismissRequest = onDismiss,
@@ -47,6 +60,9 @@ fun AdvancedDatePickerDialog(
 fun AdvancedDatePickerDialogPreview() {
     PressureTheme {
         AdvancedDatePickerDialog(
+            initialSelectedDateMillis =
+            ZonedDateTime.of(LocalDateTime.now(), ZoneId.systemDefault()).toInstant()
+                .toEpochMilli(),
             onDismiss = { },
             onDateSelected = { },
         )

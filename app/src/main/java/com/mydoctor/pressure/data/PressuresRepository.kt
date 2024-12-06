@@ -9,20 +9,26 @@ interface PressuresRepository {
     /**
      * Retrieve all the pressures from the the given data source.
      */
+    fun getAllPressuresStream(): Flow<List<Pressure>>
+
+    /**
+     * Retrieve pressures from the specified data source that
+     * correspond to the range from [startDate] to [endDate].
+     */
     fun getPressuresStream(startDate: Long, endDate: Long): Flow<List<Pressure>>
 
     /**
-     * Retrieve an pressure from the given data source that matches with the [id].
+     * Retrieve an [Pressure] from the given data source that matches with the [id].
      */
-    fun getPressureStream(id: Int): Flow<Pressure?>
+    fun getPressureStream(id: Long): Flow<Pressure?>
 
     /**
-     * Insert pressure in the data source
+     * Insert [Pressure] in the data source
      */
     suspend fun insertPressure(pressure: Pressure)
 
     /**
-     * Delete pressure from the data source
+     * Delete [Pressure] from the data source
      */
     suspend fun deletePressure(pressure: Pressure)
 }

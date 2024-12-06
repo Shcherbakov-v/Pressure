@@ -43,6 +43,14 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.Calendar
 
+/**
+ * Shows a picker that allows the user to select time. Subscribe to updates through
+ * [TimePickerState]
+ *
+ * @param onDismiss - function that is run when a dialog is canceled
+ * @param onConfirm - function that is run when the selection is confirmed
+ * @param currentTime - the time that will be displayed first on the dialog
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdvancedTimePickerDialog(

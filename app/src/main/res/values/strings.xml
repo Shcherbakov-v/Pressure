@@ -16,9 +16,9 @@
     <string name="diastolic">Диастолическое</string>
     <string name="pulse">Пульс</string>
     <string name="add_data">Добавить данные</string>
-    <string name="time_picker_type_toggle_description">Time picker type toggle</string>
-    <string name="select_time">Select Time</string>
-    <string name="cancel">Cancel</string>
+    <string name="time_picker_type_toggle_description">Переключение типа выбора времени</string>
+    <string name="select_time">Выберите время</string>
+    <string name="cancel">Отменить</string>
     <string name="ok">OK</string>
     <string name="measurement_time">Время измерений</string>
     <string name="date_of_measurements">Дата измерений</string>
@@ -29,4 +29,40 @@
     <string name="default_systolic_pressure">120</string>
     <string name="default_diastolic_pressure">90</string>
     <string name="default_pulse">70</string>
+    <string name="today">Сегодня</string>
+    <string name="unit_of_pressure_measurement">мм рт. ст</string>
+    <string name="unit_of_measurement_of_pulse">уд/мин</string>
+    <string name="there_are_notes">есть заметки</string>
+    <string name="add_data_appeal">Добавьте данные</string>
+    <string name="add_data_appeal_description">Добавить данные можно, кликнув на кнопку. Или попробуйте отсканировать данные на вашем аппарате.</string>
+    <string name="measurement_item_default">У вас нет измерений. Добавьте свои первые измерения</string>
+    <string name="pressure_is_higher_than_normal">Давление выше нормы</string>
+    <string name="pressure_is_higher_than_normal_long">Давление выше нормы. Обратитесь к врачу!</string>
+    <string name="separator">" / "</string>
+    <string name="delete_entry">Удалить запись</string>
+    <string name="delete">Удалить</string>
+    <string name="confirmation_of_deletion">Вы действительно хотите удалить запись? Подтвердите действие</string>
+    <string name="target">Цель</string>
+    <string name="target_description">Поставьте перед собой цель и выберите дату, к которой вам нужно ее достичь.</string>
+    <string name="target_description_default">Поставьте перед собой цель</string>
+    <string name="date">Дата</string>
+    <string name="time">Время</string>
+    <string name="date_incorrect">Дата не может быть установлена меньше нынешней</string>
+    <string name="time_incorrect">Время не может быть установлено меньше нынешнего</string>
+    <string name="edit">Редактировать</string>
+    <string name="no_data">Нет данных</string>
+    <string-array name="months">
+        <item>Январь</item>
+        <item>Февраль</item>
+        <item>Март</item>
+        <item>Апрель</item>
+        <item>Май</item>
+        <item>Июнь</item>
+        <item>Июль</item>
+        <item>Август</item>
+        <item>Сентябрь</item>
+        <item>Октябрь</item>
+        <item>Ноябрь</item>
+        <item>Декабрь</item>
+    </string-array>
 </resources>

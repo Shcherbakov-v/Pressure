@@ -14,8 +14,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -30,17 +28,23 @@ import com.mydoctor.pressure.R
 import com.mydoctor.pressure.ui.theme.PressureTheme
 import com.mydoctor.pressure.ui.theme.SelectButton
 
+/**
+ * SegmentedControl allows you to switch between elements from a set
+ *
+ * @param modifier
+ * @param items - list of elements
+ * @param selectedIndex - selected item
+ * @param cornerRadius - radius, applied for all four corners.
+ * @param onItemSelection - a function that is triggered when an element is clicked
+ */
 @Composable
 fun SegmentedControl(
     modifier: Modifier = Modifier,
     items: List<String>,
-    defaultSelectedItemIndex: Int = 0,
+    selectedIndex: Int,
     cornerRadius: Dp = 24.dp,
     onItemSelection: (selectedItemIndex: Int) -> Unit
 ) {
-    val selectedIndex = remember { mutableIntStateOf(defaultSelectedItemIndex) }
-    //val itemIndex = remember { mutableIntStateOf(defaultSelectedItemIndex) }
-
     Card(
         modifier = Modifier
             .padding(
@@ -62,7 +66,6 @@ fun SegmentedControl(
             horizontalArrangement = Arrangement.Center
         ) {
             items.forEachIndexed { index, item ->
-                //itemIndex.intValue = index
                 Card(
                     modifier = modifier
                         .weight(1f)
@@ -74,11 +77,10 @@ fun SegmentedControl(
                         ),
                     shape = RoundedCornerShape(cornerRadius),
                     onClick = {
-                        selectedIndex.intValue = index
-                        onItemSelection(selectedIndex.intValue)
+                        onItemSelection(index)
                     },
                     colors = CardDefaults.cardColors(
-                        containerColor = if (selectedIndex.intValue == index) {
+                        containerColor = if (selectedIndex == index) {
                             SelectButton
                         } else {
                             Color.White
@@ -93,7 +95,7 @@ fun SegmentedControl(
                             text = item,
                             style = LocalTextStyle.current.copy(
                                 fontSize = 14.sp,
-                                fontWeight = if (selectedIndex.intValue == index)
+                                fontWeight = if (selectedIndex == index)
                                     FontWeight.Bold
                                 else
                                     FontWeight.Normal,
@@ -112,14 +114,13 @@ fun SegmentedControl(
 fun SegmentedControlPreview() {
     PressureTheme {
         SegmentedControl(
+            selectedIndex = 0,
             items = listOf(
                 stringResource(R.string.day),
                 stringResource(R.string.week),
                 stringResource(R.string.month)
             ),
-            onItemSelection = { selectedItemIndex ->
-
-            }
+            onItemSelection = { }
         )
     }
 }

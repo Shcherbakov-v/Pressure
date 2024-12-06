@@ -59,7 +59,7 @@ data class PressureUiState(
 )
 
 data class PressureDetails(
-    val id: Long = 0,
+    val id: Long = EMPTY_INDEX_PRESSURE_ID,
     val systolic: String = "",
     val diastolic: String = "",
     val pulse: String = "",
@@ -68,15 +68,23 @@ data class PressureDetails(
     val dateSelected: Boolean = false,
     val timeSelected: Boolean = false,
     val note: String = "",
-)
+) {
+    companion object {
+        const val EMPTY_INDEX_PRESSURE_ID = -1L
+    }
+}
 
 /**
- * Extension function to convert [PressureUiState] to [Pressure]. If the value of [PressureDetails.systolic] is
- * not a valid [Int], then the price will be set to 0. Similarly if the value of
- * [PressureUiState] is not a valid [Int], then the quantity will be set to 0
+ * Extension function to convert [PressureUiState] to [Pressure].
+ * If the pressure has an empty index, it will be assigned the value 0.
+ * If the value of [PressureDetails.systolic] is not a valid [Int],
+ * then the price will be set to 0. Similarly if the value of
+ * [PressureDetails.diastolic] is not a valid [Int], then the quantity will be set to 0.
+ * Similarly if the value of [PressureDetails.pulse] is not a valid [Int],
+ * then the quantity will be set to 0
  */
 fun PressureDetails.toPressure(): Pressure = Pressure(
-    id = id,
+    id = if (id == -1L) 0 else id,
     systolic = systolic.toIntOrNull() ?: 0,
     diastolic = diastolic.toIntOrNull() ?: 0,
     pulse = pulse.toIntOrNull() ?: 0,

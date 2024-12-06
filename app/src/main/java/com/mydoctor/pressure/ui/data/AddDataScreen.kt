@@ -43,10 +43,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.mydoctor.pressure.R
-import com.mydoctor.pressure.ui.utilities.AdvancedDatePickerDialog
-import com.mydoctor.pressure.ui.utilities.AdvancedTimePickerDialog
 import com.mydoctor.pressure.ui.navigation.NavigationDestination
 import com.mydoctor.pressure.ui.theme.PressureTheme
+import com.mydoctor.pressure.ui.utilities.AdvancedDatePickerDialog
+import com.mydoctor.pressure.ui.utilities.AdvancedTimePickerDialog
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDateTime
@@ -56,15 +56,21 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Calendar
 
-object AddPressureDestination : NavigationDestination {
-    override val route = "add_pressure"
+/**
+ * Destination for Add Data screen
+ */
+object AddDataDestination : NavigationDestination {
+    override val route = "add_data"
 }
 
 /**
- * Entry route for Add Pressure screen
+ * Entry route for Add Data screen
+ *
+ * @param navigateBack - the function that will be used to navigate to the previous screen
+ * @param viewModel - ViewModel [AddDataViewModel] for this screen
  */
 @Composable
-fun AddPressureScreen(
+fun AddDataScreen(
     navigateBack: () -> Unit,
     //modifier: Modifier = Modifier,
     viewModel: AddDataViewModel = hiltViewModel()
@@ -233,7 +239,7 @@ fun PressureEndPulse(
                     Text(
                         text = stringResource(R.string.systolic),
                         fontSize = 11.sp,
-                        color = Color(0x801C1C24),
+//                        color = Color(0x801C1C24),
                     )
                     OutlinedTextField(
                         placeholder = { Text(stringResource(R.string.default_systolic_pressure)) },
@@ -383,19 +389,32 @@ fun DataAndTime(
                     focusedPlaceholderColor = Color(0xFF83A0B9),
                 ),
             )
+            fun dateMillisPlusTime(selectedDateMillis: Long): Long {
+                val selectedDate =
+                    Instant.ofEpochMilli(selectedDateMillis).atZone(ZoneId.systemDefault())
+                        .toLocalDate()
+                val time = date.toLocalTime()
+                val localDateTime = LocalDateTime.of(selectedDate, time)
+                val millis =
+                    ZonedDateTime.of(localDateTime, ZoneId.systemDefault()).toInstant()
+                        .toEpochMilli()
+                return millis
+            }
             if (showDatePicker) {
                 AdvancedDatePickerDialog(
+                    initialSelectedDateMillis = pressureDetails.date,
                     onDismiss = { showDatePicker = false },
                     onDateSelected = { selectedDateMillis ->
                         onValueChange(
                             pressureDetails.copy(
-                                date = selectedDateMillis,
+                                date = dateMillisPlusTime(selectedDateMillis),
                                 dateSelected = true
                             )
                         )
                     },
                 )
             }
+
         }
         Column(
             modifier = Modifier
@@ -473,10 +492,11 @@ fun Note(
             onValueChange(pressureDetails.copy(note = it))
         },
         shape = RoundedCornerShape(14.dp),
-        colors = OutlinedTextFieldDefaults.colors(
-            unfocusedPlaceholderColor = Color(0xFF83A0B9),
-            focusedPlaceholderColor = Color(0xFF83A0B9),
-        ),
+        colors = OutlinedTextFieldDefaults
+            .colors(
+                unfocusedPlaceholderColor = Color(0xFF83A0B9),
+                focusedPlaceholderColor = Color(0xFF83A0B9),
+            ),
         keyboardOptions = KeyboardOptions(
             imeAction = ImeAction.Done
         ),

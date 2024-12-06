@@ -3,6 +3,9 @@ package com.mydoctor.pressure.data
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
+/**
+ * Pressure entity data class represents a single row in the database.
+ */
 @Entity(tableName = "pressures")
 data class Pressure(
     @PrimaryKey(autoGenerate = true)
