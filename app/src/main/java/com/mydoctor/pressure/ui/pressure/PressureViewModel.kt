@@ -42,6 +42,7 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.TemporalAdjusters
 import javax.inject.Inject
+import kotlin.math.max
 
 /**
  * ViewModel to retrieve all pressures from the [PressuresRepository]'s data source.
@@ -92,7 +93,6 @@ class PressureViewModel @Inject constructor(
                             pressureChartPage1,
                             pressureChartPage2,
                         ),
-                        notes = createNotes(pressureList),
                         listUpdated = true,
                         //settledPageOfChart = 0,
                         periodOfTime = periodOfTime
@@ -230,23 +230,11 @@ class PressureViewModel @Inject constructor(
                 pressureChartsListLocal.add(pressureChartPage)
                 updatePressuresDetails(
                     pressureUiState.pressuresDetails.copy(
-                        pressureChartsList = pressureChartsListLocal.toList()
+                        pressureChartsList = pressureChartsListLocal.toList(),
                     )
                 )
             }
         }
-    }
-
-    /**
-     * Creates a list of notes based on the pressure list
-     */
-    private fun createNotes(pressureList: List<Pressure>): List<Pair<Long, String>>? {
-        val notes = pressureList.mapNotNull {
-            if (it.note.isNotEmpty()) {
-                Pair(it.date, it.note)
-            } else null
-        }.ifEmpty { null }
-        return notes
     }
 
     /**
@@ -277,7 +265,7 @@ class PressureViewModel @Inject constructor(
         }
         val endDate = when (periodOfTime) {
             Day -> localDate.atTime(LocalTime.MAX)
-            Week -> localDate.with(TemporalAdjusters.nextOrSame(DayOfWeek.SATURDAY)).plusDays(1)
+            Week -> localDate.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY))//.plusDays(1)
                 .atTime(LocalTime.MAX)
 
             Month -> localDate.with(TemporalAdjusters.lastDayOfMonth()).atTime(LocalTime.MAX)
@@ -306,7 +294,6 @@ data class PressuresUiState(
 data class PressuresDetails(
     //val pressuresList: List<Pair<LocalDateTime, List<Pressure>>> = listOf(),
     val pressureChartsList: List<PressureChart> = listOf(),
-    val notes: List<Pair<Long, String>>? = null,
     //val settledPageOfChart: Int = 0,
     val listUpdated: Boolean = false,
     val periodOfTime: PeriodOfTime = Day,
@@ -325,6 +312,7 @@ data class PressureChart(
     val listEntrySystolic: List<Entry>,
     val listEntryDiastolic: List<Entry>,
     val listEntryNote: List<Entry>,
+    val notes: List<Pair<Long, String>>?,
     val dateOrTimeRange: List<String>,
     val maxRangeValue: Float,
     val chartInfo: ChartInfo?,
@@ -351,7 +339,7 @@ data class MarkerDetails(
     val systolicValue: String,
     val diastolicValue: String,
     val pulseValue: String,
-    val dateValue: String,
+    val dateValue: LocalDateTime,
     val showNoteLabel: Boolean,
     val size: Size,
 ) {
@@ -390,8 +378,8 @@ fun PressureChart.Companion.create(
             )
             when (periodOfTime) {
                 Day -> date.hour.toFloat()
-                Week -> date.dayOfWeek.value.toFloat()
-                Month -> date.dayOfMonth.toFloat()
+                Week -> date.dayOfWeek.value.toFloat() - 1f
+                Month -> date.dayOfMonth.toFloat() -1f
             }
         }.entries.map { it.mapToEntries() }.unzip()
 
@@ -427,15 +415,20 @@ fun PressureChart.Companion.create(
             Week, Month -> "dd.MM"
         }
     )
+    val notes = createNotes(pressureList)
 
     val formatterTime = DateTimeFormatter.ofPattern("H")
-    val hoursOfDay = 24
+    val hoursOfDay = 24 + 1
     val dateOfWeek = 7
     val dateOrTimeRange = when (periodOfTime) {
         Day -> {
             maxRangeValue = hoursOfDay.toFloat()
             List(hoursOfDay) {
-                formatterTime.format(currentTime.withHour(it))
+                if (it == 24) {
+                    "0"
+                } else {
+                    formatterTime.format(currentTime.withHour(it))
+                }
             }
         }
 
@@ -460,14 +453,18 @@ fun PressureChart.Companion.create(
             }
         }
     }
+    val maxRangeValueChart =
+        listEntrySystolic.plus(listEntryNote).takeIf { it.isNotEmpty() }?.maxOf { it.x } ?: 0f
+    val maxRange = max(maxRangeValue - 1, maxRangeValueChart)
     return PressureChart(
         listEntrySystolic = listEntrySystolic,
         listEntryDiastolic = listEntryDiastolic,
         listEntryNote = listEntryNote,
+        notes = notes,
         dateOrTimeRange = dateOrTimeRange,
-        maxRangeValue = maxRangeValue,
+        maxRangeValue = maxRange,
         chartInfo = chartInfo,
-        date = currentTime
+        date = currentTime,
     )
 }
 
@@ -481,6 +478,18 @@ private fun createChartInfo(pressureList: List<Pressure>): ChartInfo = ChartInfo
     diastolicValue = pressureList.map { it.diastolic }.getMinMaxStringValue(),
     pulseValue = pressureList.map { it.pulse }.getMinMaxStringValue()
 )
+
+/**
+ * Creates a list of notes based on the pressure list
+ */
+private fun createNotes(pressureList: List<Pressure>): List<Pair<Long, String>>? {
+    val notes = pressureList.mapNotNull {
+        if (it.note.isNotEmpty()) {
+            Pair(it.date, it.note)
+        } else null
+    }.ifEmpty { null }
+    return notes
+}
 
 /**
  * Creates a string from the minimum and maximum values
@@ -523,8 +532,6 @@ private fun Map.Entry<Float, List<Pressure>>.mapToEntries(): Triple<Entry, Entry
     val date = LocalDateTime.ofInstant(
         Instant.ofEpochMilli(this.value.first().date), ZoneId.systemDefault()
     )
-    val formatterDate = DateTimeFormatter.ofPattern("dd MMMM yyyy")
-
     val markerSize =
         if (minSystolic != maxSystolic || minDiastolic != maxDiastolic || minPulse != maxPulse) MarkerDetails.Size.BIG else MarkerDetails.Size.SMALL
 
@@ -539,7 +546,7 @@ private fun Map.Entry<Float, List<Pressure>>.mapToEntries(): Triple<Entry, Entry
         systolicValue = getValue(minSystolic, maxSystolic),
         diastolicValue = getValue(minDiastolic, maxDiastolic),
         pulseValue = getValue(minPulse, maxPulse),
-        dateValue = "${formatterDate.format(date)} г.",
+        dateValue = date,
         showNoteLabel = isNotes,
         size = markerSize
     )

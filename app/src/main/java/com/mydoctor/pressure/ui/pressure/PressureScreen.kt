@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
@@ -184,6 +185,9 @@ fun PressureScreenUI(
     onValuePressuresChange: (PressuresDetails) -> Unit,
     onValueTargetChange: () -> Unit,
 ) {
+    val pagerState = rememberPagerState(
+        pageCount = { pressuresDetails.pressureChartsList.size }
+    )
     var showMarker by remember { mutableStateOf(false) }
     val x by remember { mutableIntStateOf(0) }
     val y by remember { mutableIntStateOf(0) }
@@ -221,6 +225,7 @@ fun PressureScreenUI(
             if (pressuresDetails.pressureChartsList.isNotEmpty()) {
                 ChartBlock(
                     pressuresDetails = pressuresDetails,
+                    pagerState = pagerState,
                     onPageSelected = onPageSelected,
                     onPagerUpdated = onPagerUpdated,
                     onPointClick = onPointClick,
@@ -249,7 +254,10 @@ fun PressureScreenUI(
         item {
             Notes(
                 onClick = {},
-                note = pressuresDetails.notes
+                note = pressuresDetails.pressureChartsList.takeIf { it.isNotEmpty() }?.let {
+                    it[pagerState.settledPage].notes
+                }
+
             )
         }
         item {
@@ -504,6 +512,7 @@ fun camelCase(string: String, delimiter: String = " ", separator: String = " "):
 @Composable
 fun ChartBlock(
     pressuresDetails: PressuresDetails,
+    pagerState: PagerState,
     onPageSelected: (Int) -> Unit,
     onPagerUpdated: () -> Unit,
     onPointClick: (markerDetails: MarkerDetails) -> Unit,
@@ -524,9 +533,6 @@ fun ChartBlock(
             containerColor = Color.White,
         ),
     ) {
-        val pagerState = rememberPagerState(
-            pageCount = { pressuresDetails.pressureChartsList.size }
-        )
         if (pressuresDetails.listUpdated) {
             onPagerUpdated()
             pagerState.interactionSource
@@ -650,6 +656,7 @@ fun ChartBlock(
                 listEntryNote = pressureChart.listEntryNote,
                 chartAxisValues = pressureChart.dateOrTimeRange,
                 maxRangeValue = pressureChart.maxRangeValue,
+                lineOffset = if (pressuresDetails.periodOfTime == Day) 0f else 0.5f,
                 onPointClick = onPointClick,
             )
         }
@@ -744,6 +751,24 @@ fun ChartBlock(
             popupHeightPx = coordinates.size.height
             popupWidthPx = coordinates.size.width
         }
+
+        val formatterDate = DateTimeFormatter.ofPattern("dd MMMM yyyy")
+
+        val today = pressuresDetails.marker.dateValue.toLocalDate() ==
+                pressuresDetails.currentTime.toLocalDate()
+        val dateS = if (today) {
+            stringResource(R.string.today)
+        } else {
+            "${formatterDate.format(pressuresDetails.marker.dateValue)} г."
+        }
+
+        val dateValue = if (pressuresDetails.periodOfTime == Day) {
+            val formatterTime = DateTimeFormatter.ofPattern("HH:mm")
+            val time = formatterTime.format(pressuresDetails.marker.dateValue)
+            "$dateS $time"
+        } else {
+            dateS
+        }
         when (pressuresDetails.marker.size) {
             MarkerDetails.Size.BIG -> MarkerBig(
                 x = x,
@@ -753,7 +778,7 @@ fun ChartBlock(
                 systolicValue = pressuresDetails.marker.systolicValue,
                 diastolicValue = pressuresDetails.marker.diastolicValue,
                 pulseValue = pressuresDetails.marker.pulseValue,
-                dateValue = pressuresDetails.marker.dateValue,
+                dateValue = dateValue,
                 modifier = modifier,
             )
 
@@ -765,7 +790,7 @@ fun ChartBlock(
                 systolicValue = pressuresDetails.marker.systolicValue,
                 diastolicValue = pressuresDetails.marker.diastolicValue,
                 pulseValue = pressuresDetails.marker.pulseValue,
-                dateValue = pressuresDetails.marker.dateValue,
+                dateValue = dateValue,
                 modifier = modifier,
             )
         }

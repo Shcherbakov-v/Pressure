@@ -1,7 +1,6 @@
 package com.mydoctor.pressure.ui.utilities
 
 import android.graphics.Color
-import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.padding
@@ -12,14 +11,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.github.mikephil.charting.charts.LineChart
-import com.github.mikephil.charting.components.AxisBase
 import com.github.mikephil.charting.components.LimitLine
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.components.YAxis
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
-import com.github.mikephil.charting.formatter.ValueFormatter
+import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import com.github.mikephil.charting.highlight.Highlight
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener
 import com.github.mikephil.charting.utils.EntryXComparator
@@ -27,7 +25,6 @@ import com.github.mikephil.charting.utils.MPPointD
 import com.mydoctor.pressure.R
 import com.mydoctor.pressure.ui.pressure.MarkerDetails
 import com.mydoctor.pressure.ui.theme.PressureTheme
-import com.mydoctor.pressure.utilities.TAG
 import java.util.Collections
 import kotlin.random.Random
 
@@ -39,6 +36,7 @@ import kotlin.random.Random
  * @param listEntryNote - list of entries to display the points of note values
  * @param chartAxisValues - list of entries to display labels at the bottom of the chart
  * @param maxRangeValue - maximum value of list of entries to display labels at the bottom of the chart
+ * @param lineOffset - sets the offset for the start and end of the graph
  * @param onPointClick - function that is called when click on a point on the chart. And transmits MarkerDetails
  */
 @Composable
@@ -48,6 +46,7 @@ fun Chart(
     listEntryNote: List<Entry>,
     chartAxisValues: List<String>,
     maxRangeValue: Float,
+    lineOffset: Float = 0.5f,
     onPointClick: (markerDetails: MarkerDetails) -> Unit,
 ) {
     val lineDataSetSystolic = createLineDataSet(
@@ -65,16 +64,18 @@ fun Chart(
     val lineDataSetNote = createNotesDataSet(
         listEntry = listEntryNote,
         circleColor = Color.parseColor("#0088FF"),
-        label = stringResource(R.string.diastolic),
+        label = stringResource(R.string.notes),
     )
     val lineData = LineData(lineDataSetSystolic, lineDataSetDiastolic, lineDataSetNote)
     val yMaxRangeValue =
-        listEntrySystolic.plus(listEntryDiastolic).ifEmpty { null }?.maxOf { it.y } ?: 200f
+        listEntrySystolic.plus(listEntryDiastolic).plus(listEntryNote).ifEmpty { null }
+            ?.maxOf { it.y } ?: 200f
     LineChartCard(
         lineData = lineData,
         chartAxisValues = chartAxisValues,
         xMaxRangeValue = maxRangeValue,
         yMaxRangeValue = yMaxRangeValue,
+        lineOffset = lineOffset,
         onPointClick = onPointClick,
     )
 }
@@ -86,6 +87,7 @@ fun LineChartCard(
     chartAxisValues: List<String>,
     xMaxRangeValue: Float,
     yMaxRangeValue: Float,
+    lineOffset: Float,
     onPointClick: (markerDetails: MarkerDetails) -> Unit,
 ) {
     LineChartComponent(
@@ -98,6 +100,7 @@ fun LineChartCard(
         chartAxisValues = chartAxisValues,
         xMaxRangeValue = xMaxRangeValue,
         yMaxRangeValue = yMaxRangeValue,
+        lineOffset = lineOffset,
         onPointClick = onPointClick,
     )
 }
@@ -112,6 +115,7 @@ fun LineChartComponent(
     chartAxisValues: List<String>,
     xMaxRangeValue: Float,
     yMaxRangeValue: Float,
+    lineOffset: Float,
     onPointClick: (markerDetails: MarkerDetails) -> Unit,
 ) {
     // set up data-> (x,y) -> Entry -> List<Entry> -> LineDataSet -> LineData -> LineChart(LineData)
@@ -122,21 +126,25 @@ fun LineChartComponent(
                 chartAxisValues = chartAxisValues,
                 xMaxRangeValue = xMaxRangeValue,
                 yMaxRangeValue = yMaxRangeValue,
+                lineOffset = lineOffset,
             ).apply {
                 setBackgroundColor(Color.WHITE)
                 data = lineData
             }
         },
     ) { chart ->
+        chart.xAxis.removeAllLimitLines()
+        chart.axisRight.removeAllLimitLines()
+        //chart.clear()
         chart.setupLineChart(
             chartAxisValues = chartAxisValues,
             xMaxRangeValue = xMaxRangeValue,
             yMaxRangeValue = yMaxRangeValue,
+            lineOffset = lineOffset,
         ).apply {
             setBackgroundColor(Color.WHITE)
             data = lineData
         }
-        //chart.clear()
         chart.data = lineData
         chart.notifyDataSetChanged()
         chart.invalidate()
@@ -169,11 +177,6 @@ fun LineChartComponent(
                     chart.getLocationInWindow(loc)
                     val screenX = (xValue + loc[0]).toInt()
                     val screenY = (yValue + loc[1]).toInt()
-                    Log.d(
-                        TAG, "onValueSelected:\n" +
-                                "screenX:$screenX\n" +
-                                "screenY: $screenY"
-                    )
 
                     val markerDetails = (e?.data as MarkerDetails)
                     onPointClick(
@@ -196,7 +199,8 @@ fun LineChartComponent(
 fun LineChart.setupLineChart(
     chartAxisValues: List<String>,
     xMaxRangeValue: Float,
-    yMaxRangeValue: Float
+    yMaxRangeValue: Float,
+    lineOffset: Float,
 ): LineChart =
     this.apply {
         //if (!(axisRight != null && axisRight.axisMaximum > 0)) return@apply
@@ -206,7 +210,6 @@ fun LineChart.setupLineChart(
         description.isEnabled = false
         legend.isEnabled = false
 
-        val space = 0.5f
         val createLimitLine: (limit: Float, color: Int) -> LimitLine = { limit, color ->
             LimitLine(limit).apply {
                 lineColor = color
@@ -218,26 +221,16 @@ fun LineChart.setupLineChart(
         // set up x-axis
         xAxis.apply {
             setDrawGridLines(false)
-            axisMinimum = 0f
-            axisMaximum = xMaxRangeValue
+            axisMinimum = -lineOffset
+            axisMaximum = xMaxRangeValue + lineOffset
             textColor = Color.GRAY
             axisLineColor = Color.BLACK
             position = XAxis.XAxisPosition.BOTTOM
-            spaceMax = space
-            spaceMin = space
             labelCount = if (chartAxisValues.size < 7) chartAxisValues.size else 7
+            valueFormatter = IndexAxisValueFormatter(chartAxisValues)
 
-            val llStart = createLimitLine(0f/*-space*/, Color.GRAY)
+            val llStart = createLimitLine(-lineOffset, Color.GRAY)
             addLimitLine(llStart)
-
-            valueFormatter = object : ValueFormatter() {
-                override fun getAxisLabel(value: Float, axis: AxisBase): String {
-                    val index = value.toInt()
-                    return if (chartAxisValues.isNotEmpty() && index < chartAxisValues.size) {
-                        chartAxisValues[index]
-                    } else ""
-                }
-            }
         }
         axisLeft.setAxisMaximum(yMaxRangeValue)
         axisRight.setAxisMaximum(yMaxRangeValue)
@@ -248,8 +241,10 @@ fun LineChart.setupLineChart(
             axisRight.labelCount = 4
             axisLeft.axisMaximum = 200f
             axisRight.axisMaximum = 200f
-        } else {
+        } else if (axisRight.axisMaximum >= 250) {
             axisRight.labelCount = 6
+        } else {
+            axisRight.labelCount = 4
         }
 
         // set up y-axis
