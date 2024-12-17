@@ -67,11 +67,26 @@ data class PressureDetails(
     val dateCreated: Boolean = false,
     val dateSelected: Boolean = false,
     val timeSelected: Boolean = false,
+    val numberPattern: NumberPattern = NumberPattern(),
     val note: String = "",
 ) {
     companion object {
         const val EMPTY_INDEX_PRESSURE_ID = -1L
     }
+}
+
+/**
+ * A template that filters characters. Passes only numbers through the filter
+ */
+class NumberPattern{
+    /**
+     * Regex("^\\d+\$"): A Regex object representing the regular expression ^\\d+\$.
+     * ^: Matches the beginning of a string.
+     * \\d+: Matches one or more digits (0-9).
+     * $: Matches the end of a string.
+     * Purpose: This regular expression checks whether a string consists entirely of digits.
+     */
+    val regex: Regex = Regex("^\\d+\$")
 }
 
 /**

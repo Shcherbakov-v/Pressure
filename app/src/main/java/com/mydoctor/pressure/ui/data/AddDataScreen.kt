@@ -13,7 +13,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -130,7 +129,6 @@ fun AddPressureScreenUI(
                         end = 16.dp,
                         bottom = 24.dp,
                     ),
-                colors = ButtonDefaults.buttonColors(Color(0xFF0088FF))
             ) {
                 Text(stringResource(R.string.save))
             }
@@ -207,8 +205,6 @@ fun PressureEndPulse(
     pressureDetails: PressureDetails,
     onValueChange: (PressureDetails) -> Unit,
 ) {
-    val pattern = remember { Regex("^\\d+\$") }
-
     Row(
         Modifier
             .fillMaxWidth()
@@ -239,13 +235,13 @@ fun PressureEndPulse(
                     Text(
                         text = stringResource(R.string.systolic),
                         fontSize = 11.sp,
-//                        color = Color(0x801C1C24),
+                        color = Color(0x801C1C24),
                     )
                     OutlinedTextField(
                         placeholder = { Text(stringResource(R.string.default_systolic_pressure)) },
                         value = pressureDetails.systolic,
                         onValueChange = {
-                            if (it.isEmpty() || it.matches(pattern)) {
+                            if (it.isEmpty() || it.matches(pressureDetails.numberPattern.regex)) {
                                 onValueChange(pressureDetails.copy(systolic = it))
                             }
                         },
@@ -276,7 +272,7 @@ fun PressureEndPulse(
                         placeholder = { Text(stringResource(R.string.default_diastolic_pressure)) },
                         value = pressureDetails.diastolic,
                         onValueChange = {
-                            if (it.isEmpty() || it.matches(pattern)) {
+                            if (it.isEmpty() || it.matches(pressureDetails.numberPattern.regex)) {
                                 onValueChange(pressureDetails.copy(diastolic = it))
                             }
                         },
@@ -312,7 +308,7 @@ fun PressureEndPulse(
                 placeholder = { Text(stringResource(R.string.default_pulse)) },
                 value = pressureDetails.pulse,
                 onValueChange = {
-                    if (it.isEmpty() || it.matches(pattern)) {
+                    if (it.isEmpty() || it.matches(pressureDetails.numberPattern.regex)) {
                         onValueChange(pressureDetails.copy(pulse = it))
                     }
                 },

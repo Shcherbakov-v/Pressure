@@ -34,7 +34,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -346,9 +345,9 @@ fun AddDataDialog(
 ) {
     if (sizeAddButton == IntSize.Zero || positionInRootAddButton == Offset.Zero) return
     Box {
-        val isVisible by remember { derivedStateOf { mutableStateOf(false) } }
+        var isVisible by remember { mutableStateOf(false) }
 
-        if (isVisible.value) {
+        if (isVisible) {
             Canvas(
                 modifier = Modifier.fillMaxSize()
             ) {
@@ -391,7 +390,7 @@ fun AddDataDialog(
                         // Set column height using the LayoutCoordinates
                         popupHeightPx = coordinates.size.height
 
-                        isVisible.value = coordinates.parentLayoutCoordinates?.let {
+                        isVisible = coordinates.parentLayoutCoordinates?.let {
                             val parentBounds = it.boundsInWindow()
                             val childBounds = coordinates.boundsInWindow()
                             parentBounds.overlaps(childBounds)

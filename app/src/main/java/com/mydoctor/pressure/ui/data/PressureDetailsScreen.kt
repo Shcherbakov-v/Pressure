@@ -218,17 +218,7 @@ fun PressureInPressureDetails(
                 )
                 Row(verticalAlignment = Alignment.Bottom) {
                     Text(
-                        text = pressure.systolic,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                    )
-                    Text(
-                        text = stringResource(R.string.separator),
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                    )
-                    Text(
-                        text = pressure.diastolic,
+                        text = "${pressure.systolic}${stringResource(R.string.separator)}${pressure.diastolic}",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                     )
@@ -414,6 +404,10 @@ fun AlertDialogDelete(
                             .weight(1f),
                         onClick = onDismissRequest,
                         shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.White,
+                            contentColor = Color(0x801C1C24)
+                        )
                     ) {
                         Text(
                             text = stringResource(R.string.cancel),
@@ -425,9 +419,6 @@ fun AlertDialogDelete(
                             .weight(1f),
                         onClick = onConfirmation,
                         shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF0088FF)
-                        )
                     ) {
                         Text(
                             text = stringResource(R.string.delete),
