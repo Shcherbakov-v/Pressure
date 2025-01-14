@@ -38,7 +38,7 @@
     <string name="measurement_item_default">У вас нет измерений. Добавьте свои первые измерения</string>
     <string name="pressure_is_higher_than_normal">Давление выше нормы</string>
     <string name="pressure_is_higher_than_normal_long">Давление выше нормы. Обратитесь к врачу!</string>
-    <string name="separator">" / "</string>
+    <string name="pressure_format">%1$s / %2$s</string>
     <string name="delete_entry">Удалить запись</string>
     <string name="delete">Удалить</string>
     <string name="confirmation_of_deletion">Вы действительно хотите удалить запись? Подтвердите действие</string>

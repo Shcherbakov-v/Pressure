@@ -811,9 +811,7 @@ fun PressureInfo(
     ) {
         val (
             pressureName,
-            systolic,
-            separator,
-            diastolic,
+            pressure,
             pressureEnd,
             pulseStart,
             pulse,
@@ -830,39 +828,19 @@ fun PressureInfo(
             color = Color(0x801C1C24),
         )
         Text(
-            modifier = Modifier.constrainAs(systolic) {
+            modifier = Modifier.constrainAs(pressure) {
                 top.linkTo(pressureName.top)
                 start.linkTo(pressureName.end, margin = 8.dp)
             },
-            text = systolicValue,
-            fontWeight = FontWeight.Bold,
-            fontSize = 18.sp,
-            lineHeight = 18.sp,
-        )
-        Text(
-            modifier = Modifier.constrainAs(separator) {
-                top.linkTo(systolic.top)
-                start.linkTo(systolic.end)
-            },
-            text = stringResource(R.string.separator),
+            text = stringResource(R.string.pressure_format, systolicValue, diastolicValue),
             fontSize = 18.sp,
             lineHeight = 18.sp,
             fontWeight = FontWeight.Bold,
-        )
-        Text(
-            modifier = Modifier.constrainAs(diastolic) {
-                top.linkTo(separator.top)
-                start.linkTo(separator.end)
-            },
-            text = diastolicValue,
-            fontWeight = FontWeight.Bold,
-            fontSize = 18.sp,
-            lineHeight = 18.sp,
         )
         Text(
             modifier = Modifier.constrainAs(pressureEnd) {
-                bottom.linkTo(diastolic.bottom)
-                start.linkTo(diastolic.end, margin = 4.dp)
+                bottom.linkTo(pressure.bottom)
+                start.linkTo(pressure.end, margin = 4.dp)
             },
             text = stringResource(R.string.unit_of_pressure_measurement),
             fontSize = 12.sp,
@@ -881,8 +859,8 @@ fun PressureInfo(
         )
         Text(
             modifier = Modifier.constrainAs(pulse) {
-                top.linkTo(systolic.bottom)
-                start.linkTo(systolic.start)
+                top.linkTo(pressure.bottom)
+                start.linkTo(pressure.start)
             },
             text = pulseValue,
             fontWeight = FontWeight.Bold,
@@ -944,23 +922,15 @@ fun MarkerSmall(
                             lineHeight = 12.sp,
                             color = Color(0x801C1C24),
                         )
-                        Row(verticalAlignment = Alignment.Bottom) {
-                            Text(
-                                text = systolicValue,
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold,
-                            )
-                            Text(
-                                text = stringResource(R.string.separator),
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold,
-                            )
-                            Text(
-                                text = diastolicValue,
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold,
-                            )
-                        }
+                        Text(
+                            text = stringResource(
+                                R.string.pressure_format,
+                                systolicValue,
+                                diastolicValue
+                            ),
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
                         Text(
                             text = stringResource(R.string.unit_of_pressure_measurement),
                             fontSize = 12.sp,

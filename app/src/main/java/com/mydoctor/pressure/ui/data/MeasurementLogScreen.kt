@@ -309,7 +309,7 @@ fun PressureForMonthInMeasurementLog(
                 verticalAlignment = Alignment.Bottom
             ) {
                 Text(
-                    text = "${pressure.systolic}${stringResource(R.string.separator)}${pressure.diastolic}",
+                    text = stringResource(R.string.pressure_format, pressure.systolic, pressure.diastolic),
                     fontSize = 18.sp,
                 )
                 Text(
